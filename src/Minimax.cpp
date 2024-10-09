@@ -142,13 +142,14 @@ float Minimax::minimaxAB(char board[8][8], int depth, float alpha, float beta, b
 }
 
 
-Move Minimax::findBestMove(char board[8][8], int depth, bool &isWhiteKingMoved, bool &isBlackKingMoved,
-                       bool &isWhiteRookAMoved, bool &isWhiteRookHMoved,
-                       bool &isBlackRookAMoved, bool &isBlackRookHMoved, bool &isWhite)
+Move Minimax::findBestMove(char board[8][8], int depth, bool isWhiteKingMoved, bool isBlackKingMoved,
+                       bool isWhiteRookAMoved, bool isWhiteRookHMoved,
+                       bool isBlackRookAMoved, bool isBlackRookHMoved, bool isWhite)
 {
     char tempBoard[8][8];
     std::copy(&board[0][0], &board[0][0] + 8 * 8, &tempBoard[0][0]);
     Move bestMove;
+
     float max_eval = -std::numeric_limits<float>::infinity();
     float alpha = -std::numeric_limits<float>::infinity();
     float beta = std::numeric_limits<float>::infinity();
@@ -165,7 +166,7 @@ Move Minimax::findBestMove(char board[8][8], int depth, bool &isWhiteKingMoved, 
                     for (int l = 0; l < 8; l++)
                     {
                         if (ChessUtils().verifyMove(std::make_pair(i, j),
-                                std::make_pair(k, l), tempBoard, isWhiteKingMoved,
+                                std::make_pair(k, l), board, isWhiteKingMoved,
                                 isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved,
                                 isBlackRookAMoved, isBlackRookHMoved, isWhite))
                         {

@@ -16,9 +16,9 @@ class Minimax {
         float minimaxAB(char board[8][8], int depth, float alpha, float beta, bool maximizingPlayerWhite, bool &isWhiteKingMoved, bool &isBlackKingMoved,
             bool &isWhiteRookAMoved, bool &isWhiteRookHMoved,
             bool &isBlackRookAMoved, bool &isBlackRookHMoved, bool &isWhite);
-    Move findBestMove(char board[8][8], int depth, bool &isWhiteKingMoved, bool &isBlackKingMoved,
-        bool &isWhiteRookAMoved, bool &isWhiteRookHMoved,
-        bool &isBlackRookAMoved, bool &isBlackRookHMoved, bool &isWhite);
+    Move findBestMove(char board[8][8], int depth, bool isWhiteKingMoved, bool isBlackKingMoved,
+        bool isWhiteRookAMoved, bool isWhiteRookHMoved,
+        bool isBlackRookAMoved, bool isBlackRookHMoved, bool isWhite);
 
 
 };
