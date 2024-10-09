@@ -69,7 +69,7 @@ int main() {
         std::pair<int, int> old;
         std::pair<int, int> newC;
 
-        if (white_turn)
+        /*if (white_turn)
         {
             std::string start_location, destination;
             std::cout << (white_turn ? "White" : "Black") << " player's turn\n";
@@ -89,13 +89,13 @@ int main() {
             newC = m.newC;
 
             //std::cout << "AI move: " << old.first << " " << old.second << " goes to " << newC.first << " " << newC.second << std::endl;
-        }
+        }*/
 
-        /*Move m = Minimax().findBestMove(board, 20, isWhiteKingMoved, isBlackKingMoved,
+        Move m = Minimax().findBestMove(board, 20, isWhiteKingMoved, isBlackKingMoved,
                 isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved,white_turn);
 
         old = m.oldC;
-        newC = m.newC;*/
+        newC = m.newC;
 
         // Ensure valid turn
         if (std::isupper(board[old.first][old.second]) == white_turn) {
@@ -111,8 +111,6 @@ int main() {
                 {
                     movesFor50Moverule++;
                 }
-
-
 
                 ChessUtils().move(board, old, newC,
                      isWhiteKingMoved, isBlackKingMoved,

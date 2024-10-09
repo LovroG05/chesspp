@@ -13,3 +13,18 @@ std::vector<std::vector<char>> Utils::boardToVectorBoard(char board[8][8]){
   }
   return vecBoard;
 }
+
+// Function to check if a square is within bounds
+bool Utils::isValidSquare(int row, int col) {
+  return row >= 0 && row < 8 && col >= 0 && col < 8;
+}
+
+// Check if a square is empty or occupied by an opponent
+bool Utils::isEnemyPiece(char piece, bool isWhite) {
+  return (isWhite && islower(piece)) || (!isWhite && isupper(piece));
+}
+
+// Check if a square is empty
+bool Utils::isEmptySquare(char piece) {
+  return piece == ' ';
+}
