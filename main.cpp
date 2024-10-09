@@ -2,8 +2,10 @@
 #include <iostream>
 #include <Minimax.h>
 #include <string>
+#include <vector>
 
-#include "include/ChessUtils.h"
+#include <ChessUtils.h>
+#include <Utils.h>
 
 #define WHITE_SQUARE 0xDB
 #define BLACK_SQUARE 0xFF
@@ -22,6 +24,8 @@ int main() {
         {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
     };
 
+    std::vector<std::vector<std::vector<char>>> history(0, std::vector<std::vector<char>>(8, std::vector<char>(8, ' ')));
+
     bool white_turn = true;
     bool isWhiteKingMoved = false;
     bool isWhiteRookAMoved = false; // Rook on A1
@@ -32,6 +36,8 @@ int main() {
 
     std::cout << "Welcome to Chess!\nThe coordinates are formatted like 'B4'!\n";
 
+
+    int movesFor50Moverule = 0;
 
     while (true) {
         std::cout << std::endl;
@@ -46,6 +52,18 @@ int main() {
                 std::cout << "Checkmate on " << (white_turn ? "white" : "black") << std::endl;
                 break; // Checkmate ends the game
             }
+        }
+
+        if (movesFor50Moverule == 50)
+        {
+            std::cout<< "50 move rule reached - DRAW" << std::endl;
+            break;
+        }
+
+        if (std::count(history.begin(), history.end(), Utils::boardToVectorBoard(board)) >= 3)
+        {
+            std::cout << "3 repeated moves - DRAW" << std::endl;
+            break;
         }
 
         std::pair<int, int> old;
@@ -73,10 +91,11 @@ int main() {
             //std::cout << "AI move: " << old.first << " " << old.second << " goes to " << newC.first << " " << newC.second << std::endl;
         }
 
+        /*Move m = Minimax().findBestMove(board, 20, isWhiteKingMoved, isBlackKingMoved,
+                isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved,white_turn);
 
-
-
-
+        old = m.oldC;
+        newC = m.newC;*/
 
         // Ensure valid turn
         if (std::isupper(board[old.first][old.second]) == white_turn) {
@@ -85,10 +104,26 @@ int main() {
                            isWhiteKingMoved, isBlackKingMoved,
                            isWhiteRookAMoved, isWhiteRookHMoved,
                            isBlackRookAMoved, isBlackRookHMoved, white_turn)) {
+                if (std::tolower(board[old.first][old.second]) == 'p' || board[newC.first][newC.second] != ' ')
+                {
+                    movesFor50Moverule = 0;
+                } else
+                {
+                    movesFor50Moverule++;
+                }
+
+
+
                 ChessUtils().move(board, old, newC,
                      isWhiteKingMoved, isBlackKingMoved,
                      isWhiteRookAMoved, isWhiteRookHMoved,
                      isBlackRookAMoved, isBlackRookHMoved);
+
+                std::vector<std::vector<char>> boardV = Utils::boardToVectorBoard(board);
+
+                history.resize(history.size() + 1);
+                history[history.size()-1] = boardV;
+
             } else {
                 std::cout << "Invalid move. Try again.\n";
                 continue;
