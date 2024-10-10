@@ -24,7 +24,7 @@ void ChessUtils::printBoard(int color1, int color2, char board[8][8])
             {
                 for (int k = 0; k < HCHARSINCELL; k++) // chars in cells
                 {
-                    if (Utils::isEmptySquare(board[row][j]) && i == 1 && k == 2)
+                    if (!Utils::isEmptySquare(board[row][j]) && i == 1 && k == 2)
                     {
                         std::cout << board[row][j];
                     }
@@ -298,7 +298,7 @@ std::pair<int, int> ChessUtils::findKing(char board[8][8], bool white)
     {
         for (int j = 0; j < 8; j++)
         {
-            if (std::tolower(board[i][j]) == 'k' && !Utils::isEmptySquare(board[i][j]))
+            if (std::tolower(board[i][j]) == 'k' && !Utils::isEmptySquare(board[i][j]) && !Utils::isEnemyPiece(board[i][j], white))
             {
                 king = std::make_pair(i, j);
             }
