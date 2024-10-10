@@ -9,30 +9,30 @@
 
 class ChessUtils {
     public:
-        void printBoard(int color1, int color2, char chessBoard[8][8]);
-        std::pair<int, int> chessboardToArrCords(std::string strCoords);
-        void move(char (&board)[8][8], std::pair<int, int> old, std::pair<int, int> newC,
-            bool &isWhiteKingMoved, bool &isBlackKingMoved,
-            bool &isWhiteRookAMoved, bool &isWhiteRookHMoved,
-            bool &isBlackRookAMoved, bool &isBlackRookHMoved);
-        bool verifyMove(std::pair<int, int> old, std::pair<int, int> newC, char board[8][8],
+        static void printBoard(int color1, int color2, char chessBoard[8][8]);
+        static std::pair<int, int> chessboardToArrCords(const std::string& strCoords);
+        static void move(char (&board)[8][8], std::pair<int, int> old, std::pair<int, int> newC,
+                         bool &isWhiteKingMoved, bool &isBlackKingMoved,
+                         bool &isWhiteRookAMoved, bool &isWhiteRookHMoved,
+                         bool &isBlackRookAMoved, bool &isBlackRookHMoved);
+        static bool verifyMove(std::pair<int, int> old, std::pair<int, int> newC, char board[8][8],
             bool &isWhiteKingMoved, bool &isBlackKingMoved,
             bool &isWhiteRookAMoved, bool &isWhiteRookHMoved,
             bool &isBlackRookAMoved, bool &isBlackRookHMoved, bool isWhite);
-        std::pair<int, int> findKing(char board[8][8], bool white);
-        bool checkExists(char board[8][8], bool isKingWhite, bool &isWhiteKingMoved,
+        static std::pair<int, int> findKing(char board[8][8], bool white);
+        static bool checkExists(char board[8][8], bool isKingWhite, bool &isWhiteKingMoved,
             bool &isBlackKingMoved, bool &isWhiteRookAMoved,
             bool &isWhiteRookHMoved, bool &isBlackRookAMoved, bool &isBlackRookHMoved);
-        bool canKingMove(bool white, char board[8][8], bool &isWhiteKingMoved,
+        static bool canKingMove(bool white, char board[8][8], bool &isWhiteKingMoved,
             bool &isBlackKingMoved, bool &isWhiteRookAMoved,
             bool &isWhiteRookHMoved, bool &isBlackRookAMoved, bool &isBlackRookHMoved);
-        bool canOthersSaveKing(bool white, char board[8][8], bool &isWhiteKingMoved, bool &isBlackKingMoved,
+        static bool canOthersSaveKing(bool white, char board[8][8], bool &isWhiteKingMoved, bool &isBlackKingMoved,
             bool &isWhiteRookAMoved, bool &isWhiteRookHMoved,
             bool &isBlackRookAMoved, bool &isBlackRookHMoved);
-        bool canMove(bool white, char board[8][8], bool &isWhiteKingMoved, bool &isBlackKingMoved,
+        static bool canMove(bool white, char board[8][8], bool &isWhiteKingMoved, bool &isBlackKingMoved,
             bool &isWhiteRookAMoved, bool &isWhiteRookHMoved,
             bool &isBlackRookAMoved, bool &isBlackRookHMoved);
-        bool solvesCheck(bool white, char board[8][8], std::pair<int, int> old, std::pair<int, int> newC,
+        static bool solvesCheck(bool white, char board[8][8], std::pair<int, int> old, std::pair<int, int> newC,
             bool &isWhiteKingMoved, bool &isBlackKingMoved,
             bool &isWhiteRookAMoved, bool &isWhiteRookHMoved,
             bool &isBlackRookAMoved, bool &isBlackRookHMoved);
