@@ -33,6 +33,8 @@ int main() {
     bool isBlackKingMoved = false;
     bool isBlackRookAMoved = false; // Rook on A8
     bool isBlackRookHMoved = false; // Rook on H8
+    bool checkOnBlack = false;
+    bool checkOnWhite = false;
 
     std::cout << "Welcome to Chess!\nThe coordinates are formatted like 'B4'!\n";
 
@@ -45,9 +47,17 @@ int main() {
 
 
         // In the main loop, check for checkmate or stalemate:
-        if (ChessUtils::checkExists(board, white_turn, isWhiteKingMoved, isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved)) {
-            if (ChessUtils::canKingMove(white_turn, board, isWhiteKingMoved, isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved) || ChessUtils::canOthersSaveKing(white_turn, board, isWhiteKingMoved, isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved)) {
+        if (ChessUtils::checkExists(board, white_turn, isWhiteKingMoved, isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved, checkOnWhite, checkOnBlack)) {
+            if (ChessUtils::canKingMove(white_turn, board, isWhiteKingMoved, isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved, checkOnWhite, checkOnBlack)
+                || ChessUtils::canOthersSaveKing(white_turn, board, isWhiteKingMoved, isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved, checkOnWhite, checkOnBlack)) {
                 std::cout << "Check on " << (white_turn ? "white" : "black") << std::endl;
+                if (!white_turn)
+                {
+                    checkOnBlack = true;
+                } else
+                {
+                    checkOnWhite = true;
+                }
             } else {
                 std::cout << "Checkmate on " << (white_turn ? "white" : "black") << std::endl;
                 break; // Checkmate ends the game
@@ -83,7 +93,7 @@ int main() {
         } else
         {
             Move m = Minimax().findBestMove(board, 20, isWhiteKingMoved, isBlackKingMoved,
-                isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved,white_turn);
+                isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved,white_turn, checkOnWhite, checkOnBlack);
 
             old = m.oldC;
             newC = m.newC;
@@ -100,10 +110,17 @@ int main() {
         // Ensure valid turn
         if (std::isupper(board[old.first][old.second]) == white_turn) {
             // Check if move is valid (including castling)
+            if ((white_turn && checkOnWhite) || (!white_turn && checkOnBlack) && !ChessUtils::solvesCheck(white_turn, board, old, newC, isWhiteKingMoved, isBlackKingMoved,
+                                       isWhiteRookAMoved, isWhiteRookHMoved,
+                                       isBlackRookAMoved, isBlackRookHMoved, checkOnWhite, checkOnBlack))
+            {
+                std::cout << "First solve the check on " << (white_turn ? "white" : "black") << std::endl;
+                continue;
+            }
             if (ChessUtils::verifyMove(old, newC, board,
-                           isWhiteKingMoved, isBlackKingMoved,
-                           isWhiteRookAMoved, isWhiteRookHMoved,
-                           isBlackRookAMoved, isBlackRookHMoved, white_turn)) {
+                                       isWhiteKingMoved, isBlackKingMoved,
+                                       isWhiteRookAMoved, isWhiteRookHMoved,
+                                       isBlackRookAMoved, isBlackRookHMoved, white_turn, checkOnWhite, checkOnBlack)) {
                 if (std::tolower(board[old.first][old.second]) == 'p' || board[newC.first][newC.second] != ' ')
                 {
                     movesFor50Moverule = 0;
@@ -131,6 +148,8 @@ int main() {
             continue;
         }
         white_turn = !white_turn;  // Switch turns
+        checkOnBlack = false;
+        checkOnWhite = false;
     }
     return 0;
 }

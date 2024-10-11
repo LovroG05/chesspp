@@ -137,7 +137,7 @@ void ChessUtils::move(char (&board)[8][8], std::pair<int, int> old, std::pair<in
 bool ChessUtils::verifyMove(std::pair<int, int> old, std::pair<int, int> newC, char board[8][8],
                             bool& isWhiteKingMoved, bool& isBlackKingMoved,
                             bool& isWhiteRookAMoved, bool& isWhiteRookHMoved,
-                            bool& isBlackRookAMoved, bool& isBlackRookHMoved, bool isWhite)
+                            bool& isBlackRookAMoved, bool& isBlackRookHMoved, bool isWhite, bool checkOnWhite, bool checkOnBlack)
 {
     char piece = board[old.first][old.second];
     char target = board[newC.first][newC.second];
@@ -149,6 +149,12 @@ bool ChessUtils::verifyMove(std::pair<int, int> old, std::pair<int, int> newC, c
     if (!Utils::isEnemyPiece(target, isWhite) && !Utils::isEmptySquare(target))
     {
         return false; // Can't capture your own piece
+    }
+
+    if (((isWhite && checkOnWhite) || (!isWhite && checkOnBlack))
+        && !solvesCheck(isWhite, board, old, newC, isWhiteKingMoved, isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved, checkOnWhite, checkOnBlack))
+    {
+        return false;
     }
 
     // Castling conditions
@@ -310,7 +316,7 @@ std::pair<int, int> ChessUtils::findKing(char board[8][8], bool white)
 
 bool ChessUtils::checkExists(char board[8][8], bool isKingWhite, bool& isWhiteKingMoved, bool& isBlackKingMoved,
                              bool& isWhiteRookAMoved, bool& isWhiteRookHMoved, bool& isBlackRookAMoved,
-                             bool& isBlackRookHMoved)
+                             bool& isBlackRookHMoved, bool checkOnWhite, bool checkOnBlack)
 {
     std::pair<int, int> king;
     // Locate the king
@@ -329,7 +335,8 @@ bool ChessUtils::checkExists(char board[8][8], bool isKingWhite, bool& isWhiteKi
                 std::pair<int, int> attacker = std::make_pair(i, j);
                 //std::cout << "attacker on " << attacker.first << ' ' << attacker.second << ' ' << piece << '\n';
                 if (verifyMove(attacker, king, board, isWhiteKingMoved, isBlackKingMoved, isWhiteRookAMoved,
-                               isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved, !isKingWhite))
+                               isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved, !isKingWhite,
+                               checkOnWhite, checkOnBlack))
                 {
                     //std::cout << "king in check\n";
                     return true; // King is in check
@@ -345,7 +352,7 @@ bool ChessUtils::checkExists(char board[8][8], bool isKingWhite, bool& isWhiteKi
 
 bool ChessUtils::canKingMove(bool white, char board[8][8], bool& isWhiteKingMoved, bool& isBlackKingMoved,
                              bool& isWhiteRookAMoved, bool& isWhiteRookHMoved, bool& isBlackRookAMoved,
-                             bool& isBlackRookHMoved)
+                             bool& isBlackRookHMoved, bool checkOnWhite, bool checkOnBlack)
 {
     std::pair<int, int> kingPosition;
 
@@ -385,7 +392,7 @@ bool ChessUtils::canKingMove(bool white, char board[8][8], bool& isWhiteKingMove
                     //std::cout << '\n\n\n';
 
                     if (!checkExists(tempBoard, white, isWhiteKingMoved, isBlackKingMoved, isWhiteRookAMoved,
-                                     isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved))
+                                     isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved, checkOnWhite, checkOnBlack))
                     {
                         //std::cout << "king can move\n";
                         return true; // The king can move here safely
@@ -401,7 +408,7 @@ bool ChessUtils::canKingMove(bool white, char board[8][8], bool& isWhiteKingMove
 
 bool ChessUtils::canOthersSaveKing(bool white, char board[8][8], bool& isWhiteKingMoved, bool& isBlackKingMoved,
                                    bool& isWhiteRookAMoved, bool& isWhiteRookHMoved,
-                                   bool& isBlackRookAMoved, bool& isBlackRookHMoved)
+                                   bool& isBlackRookAMoved, bool& isBlackRookHMoved, bool checkOnWhite, bool checkOnBlack)
 {
     /*std::pair<int, int> king;
     // Locate the king
@@ -424,7 +431,7 @@ bool ChessUtils::canOthersSaveKing(bool white, char board[8][8], bool& isWhiteKi
                         std::pair<int, int> destination = std::make_pair(ni, nj);
                         if (verifyMove(attacker, destination, board, isWhiteKingMoved, isBlackKingMoved,
                                        isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved,
-                                       white))
+                                       white, checkOnWhite, checkOnBlack))
                         {
                             char tempBoard[8][8];
                             // Simulate the move
@@ -434,7 +441,7 @@ bool ChessUtils::canOthersSaveKing(bool white, char board[8][8], bool& isWhiteKi
 
                             // Check if the move solves the check
                             if (!checkExists(tempBoard, white, isWhiteKingMoved, isBlackKingMoved, isWhiteRookAMoved,
-                                             isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved))
+                                             isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved, checkOnWhite, checkOnBlack))
                             {
                                 return true; // The move saves the king
                             }
@@ -450,7 +457,7 @@ bool ChessUtils::canOthersSaveKing(bool white, char board[8][8], bool& isWhiteKi
 
 bool ChessUtils::canMove(bool white, char board[8][8], bool& isWhiteKingMoved, bool& isBlackKingMoved,
                          bool& isWhiteRookAMoved, bool& isWhiteRookHMoved,
-                         bool& isBlackRookAMoved, bool& isBlackRookHMoved)
+                         bool& isBlackRookAMoved, bool& isBlackRookHMoved, bool checkOnWhite, bool checkOnBlack)
 {
     for (int i = 0; i < 8; i++)
     {
@@ -465,7 +472,7 @@ bool ChessUtils::canMove(bool white, char board[8][8], bool& isWhiteKingMoved, b
                     {
                         if (verifyMove(std::make_pair(i, j), std::make_pair(k, l), board, isWhiteKingMoved,
                                        isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved,
-                                       isBlackRookHMoved, white))
+                                       isBlackRookHMoved, white, checkOnWhite, checkOnBlack))
                         {
                             return true;
                         }
@@ -480,7 +487,7 @@ bool ChessUtils::canMove(bool white, char board[8][8], bool& isWhiteKingMoved, b
 bool ChessUtils::solvesCheck(bool white, char board[8][8], std::pair<int, int> old, std::pair<int, int> newC,
                              bool& isWhiteKingMoved, bool& isBlackKingMoved,
                              bool& isWhiteRookAMoved, bool& isWhiteRookHMoved,
-                             bool& isBlackRookAMoved, bool& isBlackRookHMoved)
+                             bool& isBlackRookAMoved, bool& isBlackRookHMoved, bool checkOnWhite, bool checkOnBlack)
 {
     char tempBoard[8][8];
     for (int i = 0; i < 8; i++)
@@ -502,8 +509,8 @@ bool ChessUtils::solvesCheck(bool white, char board[8][8], std::pair<int, int> o
          isWhiteRookAMoved, isWhiteRookHMoved,
          isBlackRookAMoved, isBlackRookHMoved);
 
-    return checkExists(tempBoard, white,
+    return !checkExists(tempBoard, white,
        isWhiteKingMoved, isBlackKingMoved,
        isWhiteRookAMoved, isWhiteRookHMoved,
-       isBlackRookAMoved, isBlackRookHMoved);
+       isBlackRookAMoved, isBlackRookHMoved, checkOnWhite, checkOnBlack);
 }

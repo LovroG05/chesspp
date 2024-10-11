@@ -386,7 +386,7 @@ int Minimax::evaluateAllPieceActivity(const char board[8][8]) {
     return totalActivityScore;
 }
 
-int Minimax::evaluate(char board[8][8])
+int Minimax::evaluate(char board[8][8], bool checkOnWhite, bool checkOnBlack)
 {
     int score = 0;
     int materialScore = evaluateMaterial(board);
@@ -399,28 +399,56 @@ int Minimax::evaluate(char board[8][8])
 
     int activityScore = evaluateAllPieceActivity(board);
 
+    int checkedScore = 0;
+    if (checkOnWhite)
+    {
+        checkedScore -= CHECK_SCORE_VALUE;
+    }
+    if (checkOnBlack)
+    {
+        checkedScore += CHECK_SCORE_VALUE;
+    }
+
 
     score = materialScore
         + whitePawnStructureScore - blackPawnStructureScore
         + whiteKingSafetyScore - blackKingSafetyScore
-        + activityScore;
+        + activityScore + checkedScore;
     return score;
 }
 
 // WARNING: THE MINIMAX ALGORITHM FUNCTION ALTERS THE BOARD ARRAY! ALWAYS PASS A TEMPBOARD
 float Minimax::minimaxAB(char board[8][8], int depth, float alpha, float beta, bool isMaximisingPlayer, bool &isWhiteKingMoved, bool &isBlackKingMoved,
                        bool &isWhiteRookAMoved, bool &isWhiteRookHMoved,
-                       bool &isBlackRookAMoved, bool &isBlackRookHMoved, bool &isWhite)
+                       bool &isBlackRookAMoved, bool &isBlackRookHMoved, bool &isWhite, bool checkOnWhite, bool checkOnBlack)
 {
     char tempBoard[8][8];
     std::copy(&board[0][0], &board[0][0] + 8 * 8, &tempBoard[0][0]);
-    if (depth == 0 &&
-        ChessUtils().canKingMove(isWhite, tempBoard, isWhiteKingMoved, isBlackKingMoved,
-            isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved) &&
-        ChessUtils().canOthersSaveKing(isWhite, tempBoard, isWhiteKingMoved,
-            isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved)) // TODO also check for game end
+
+    if (ChessUtils::checkExists(tempBoard, isWhite, isWhiteKingMoved, isBlackKingMoved,
+            isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved, checkOnWhite, checkOnBlack))
     {
-        return evaluate(tempBoard);
+        if (isWhite)
+        {
+            checkOnWhite = true;
+        } else
+        {
+            checkOnBlack = true;
+        }
+    }
+    else
+    {
+        checkOnWhite = false;
+        checkOnBlack = false;
+    }
+    
+    if (depth == 0 &&
+        ChessUtils::canKingMove(isWhite, tempBoard, isWhiteKingMoved, isBlackKingMoved,
+            isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved, checkOnWhite, checkOnBlack) &&
+        ChessUtils::canOthersSaveKing(isWhite, tempBoard, isWhiteKingMoved,
+            isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved, checkOnWhite, checkOnBlack))
+    {
+        return evaluate(tempBoard, checkOnWhite, checkOnBlack);
     }
 
     if (isMaximisingPlayer)
@@ -440,19 +468,19 @@ float Minimax::minimaxAB(char board[8][8], int depth, float alpha, float beta, b
                     {
                         for (int l = 0; l < 8; l++)
                         {
-                            if ((isWhite && std::islower(tempBoard[k][l]) || !isWhite && std::isupper(tempBoard[k][l])) && ChessUtils().verifyMove(std::make_pair(i, j),
+                            if ((isWhite && std::islower(tempBoard[k][l]) || !isWhite && std::isupper(tempBoard[k][l])) && ChessUtils::verifyMove(std::make_pair(i, j),
                                 std::make_pair(k, l), tempBoard, isWhiteKingMoved,
                                 isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved,
-                                isBlackRookAMoved, isBlackRookHMoved, isWhite))
+                                isBlackRookAMoved, isBlackRookHMoved, isWhite, checkOnWhite, checkOnBlack))
                             {
-                                ChessUtils().move(tempBoard, std::make_pair(i, j),
+                                ChessUtils::move(tempBoard, std::make_pair(i, j),
                                 std::make_pair(k, l), isWhiteKingMoved, isBlackKingMoved,
                                    isWhiteRookAMoved, isWhiteRookHMoved,
                                    isBlackRookAMoved, isBlackRookHMoved);
                                 max_eval = std::max(max_eval, minimaxAB(tempBoard, depth-1, alpha, beta, false, isWhiteKingMoved, isBlackKingMoved,
                                    isWhiteRookAMoved, isWhiteRookHMoved,
-                                   isBlackRookAMoved, isBlackRookHMoved, isWhite));
-                                ChessUtils().move(tempBoard, std::make_pair(k, l), std::make_pair(i, j), isWhiteKingMoved, isBlackKingMoved,
+                                   isBlackRookAMoved, isBlackRookHMoved, isWhite, checkOnWhite, checkOnBlack));
+                                ChessUtils::move(tempBoard, std::make_pair(k, l), std::make_pair(i, j), isWhiteKingMoved, isBlackKingMoved,
                                    isWhiteRookAMoved, isWhiteRookHMoved,
                                    isBlackRookAMoved, isBlackRookHMoved);
                                 alpha = std::max(alpha, max_eval);
@@ -483,19 +511,19 @@ float Minimax::minimaxAB(char board[8][8], int depth, float alpha, float beta, b
                     {
                         for (int l = 0; l < 8; l++)
                         {
-                            if ((isWhite && std::islower(tempBoard[k][l]) || !isWhite && std::isupper(tempBoard[k][l])) && ChessUtils().verifyMove(std::make_pair(i, j),
+                            if ((isWhite && std::islower(tempBoard[k][l]) || !isWhite && std::isupper(tempBoard[k][l])) && ChessUtils::verifyMove(std::make_pair(i, j),
                                 std::make_pair(k, l), tempBoard, isWhiteKingMoved,
                                 isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved,
-                                isBlackRookAMoved, isBlackRookHMoved, isWhite))
+                                isBlackRookAMoved, isBlackRookHMoved, isWhite, checkOnWhite, checkOnBlack))
                             {
-                                ChessUtils().move(tempBoard, std::make_pair(i, j),
+                                ChessUtils::move(tempBoard, std::make_pair(i, j),
                                 std::make_pair(k, l), isWhiteKingMoved, isBlackKingMoved,
                                    isWhiteRookAMoved, isWhiteRookHMoved,
                                    isBlackRookAMoved, isBlackRookHMoved);
                                 min_eval = std::min(min_eval, minimaxAB(tempBoard, depth-1, alpha, beta, true, isWhiteKingMoved, isBlackKingMoved,
                                    isWhiteRookAMoved, isWhiteRookHMoved,
-                                   isBlackRookAMoved, isBlackRookHMoved, isWhite));
-                                ChessUtils().move(tempBoard, std::make_pair(k, l), std::make_pair(i, j), isWhiteKingMoved, isBlackKingMoved,
+                                   isBlackRookAMoved, isBlackRookHMoved, isWhite, checkOnWhite, checkOnBlack));
+                                ChessUtils::move(tempBoard, std::make_pair(k, l), std::make_pair(i, j), isWhiteKingMoved, isBlackKingMoved,
                                    isWhiteRookAMoved, isWhiteRookHMoved,
                                    isBlackRookAMoved, isBlackRookHMoved);
                                 alpha = std::min(beta, min_eval);
@@ -516,7 +544,7 @@ float Minimax::minimaxAB(char board[8][8], int depth, float alpha, float beta, b
 
 Move Minimax::findBestMove(char board[8][8], int depth, bool isWhiteKingMoved, bool isBlackKingMoved,
                        bool isWhiteRookAMoved, bool isWhiteRookHMoved,
-                       bool isBlackRookAMoved, bool isBlackRookHMoved, bool isWhite)
+                       bool isBlackRookAMoved, bool isBlackRookHMoved, bool isWhite, bool checkOnWhite, bool checkOnBlack)
 {
     char tempBoard[8][8];
     std::copy(&board[0][0], &board[0][0] + 8 * 8, &tempBoard[0][0]);
@@ -537,19 +565,19 @@ Move Minimax::findBestMove(char board[8][8], int depth, bool isWhiteKingMoved, b
                 {
                     for (int l = 0; l < 8; l++)
                     {
-                        if (ChessUtils().verifyMove(std::make_pair(i, j),
-                                std::make_pair(k, l), board, isWhiteKingMoved,
-                                isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved,
-                                isBlackRookAMoved, isBlackRookHMoved, isWhite))
+                        if (ChessUtils::verifyMove(std::make_pair(i, j),
+                                                    std::make_pair(k, l), board, isWhiteKingMoved,
+                                                    isBlackKingMoved, isWhiteRookAMoved, isWhiteRookHMoved,
+                                                    isBlackRookAMoved, isBlackRookHMoved, isWhite, checkOnWhite, checkOnBlack))
                         {
-                            ChessUtils().move(tempBoard, std::make_pair(i, j),
+                            ChessUtils::move(tempBoard, std::make_pair(i, j),
                                 std::make_pair(k, l), isWhiteKingMoved, isBlackKingMoved,
                                    isWhiteRookAMoved, isWhiteRookHMoved,
                                    isBlackRookAMoved, isBlackRookHMoved);
                             float eval = minimaxAB(tempBoard, depth-1, alpha, beta, true, isWhiteKingMoved, isBlackKingMoved,
                                isWhiteRookAMoved, isWhiteRookHMoved,
-                               isBlackRookAMoved, isBlackRookHMoved, isWhite);
-                            ChessUtils().move(tempBoard, std::make_pair(k, l), std::make_pair(i, j), isWhiteKingMoved, isBlackKingMoved,
+                               isBlackRookAMoved, isBlackRookHMoved, isWhite, checkOnWhite, checkOnBlack);
+                            ChessUtils::move(tempBoard, std::make_pair(k, l), std::make_pair(i, j), isWhiteKingMoved, isBlackKingMoved,
                                isWhiteRookAMoved, isWhiteRookHMoved,
                                isBlackRookAMoved, isBlackRookHMoved);
                             if (eval >= max_eval)

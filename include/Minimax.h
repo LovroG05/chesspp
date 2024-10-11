@@ -27,6 +27,7 @@ class Minimax {
     const int ROOK_ACTIVITY_VALUE = 50;
     const int QUEEN_ACTIVITY_VALUE = 90;
     const int KING_ACTIVITY_VALUE = 10;  // King mobility is generally not as important
+    const int CHECK_SCORE_VALUE = 500;
 
     const int knightMoves[8][2] = {
         {2, 1}, {2, -1}, {-2, 1}, {-2, -1}, {1, 2}, {1, -2}, {-1, 2}, {-1, -2}
@@ -38,13 +39,13 @@ class Minimax {
 
 
     public:
-        int evaluate(char board[8][8]);
+        int evaluate(char board[8][8], bool checkOnWhite, bool checkOnBlack);
         float minimaxAB(char board[8][8], int depth, float alpha, float beta, bool maximizingPlayerWhite, bool &isWhiteKingMoved, bool &isBlackKingMoved,
             bool &isWhiteRookAMoved, bool &isWhiteRookHMoved,
-            bool &isBlackRookAMoved, bool &isBlackRookHMoved, bool &isWhite);
+            bool &isBlackRookAMoved, bool &isBlackRookHMoved, bool &isWhite, bool checkOnWhite, bool checkOnBlack);
         Move findBestMove(char board[8][8], int depth, bool isWhiteKingMoved, bool isBlackKingMoved,
             bool isWhiteRookAMoved, bool isWhiteRookHMoved,
-            bool isBlackRookAMoved, bool isBlackRookHMoved, bool isWhite);
+            bool isBlackRookAMoved, bool isBlackRookHMoved, bool isWhite, bool checkOnWhite, bool checkOnBlack);
         int evaluateMaterial(char board[8][8]);
         int evaluatePawnStructure(char board[8][8], bool isWhite) ;
         static bool isIsolatedPawn(const char board[8][8], int row, int col, bool isWhite);
