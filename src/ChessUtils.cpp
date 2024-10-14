@@ -68,7 +68,7 @@ void ChessUtils::move(char (&board)[8][8], std::pair<int, int> old, std::pair<in
     board[newC.first][newC.second] = piece; // Move the piece
 
     // Handle castling
-    if (piece == 'K')
+    if (piece == 'K' && !isWhiteKingMoved)
     {
         // White King
         isWhiteKingMoved = true; // King has moved
@@ -87,7 +87,7 @@ void ChessUtils::move(char (&board)[8][8], std::pair<int, int> old, std::pair<in
             isWhiteRookAMoved = true; // Mark the rook as moved
         }
     }
-    else if (piece == 'k')
+    else if (piece == 'k' && !isBlackKingMoved)
     {
         // Black King
         isBlackKingMoved = true; // King has moved
@@ -158,23 +158,23 @@ bool ChessUtils::verifyMove(std::pair<int, int> old, std::pair<int, int> newC, c
     }
 
     // Castling conditions
-    if ((piece == 'K' && !isWhiteKingMoved && (newC.first == old.first + 2 || newC.first == old.first - 2)) ||
-        (piece == 'k' && !isBlackKingMoved && (newC.first == old.first + 2 || newC.first == old.first - 2)))
+    if ((piece == 'K' && !isWhiteKingMoved && (newC.second == old.second + 2 || newC.second == old.second - 2)) ||
+        (piece == 'k' && !isBlackKingMoved && (newC.second == old.second + 2 || newC.second == old.second - 2)))
     {
         // Kingside castling
-        if ((piece == 'K' && newC.first == old.first + 2 && !isWhiteRookHMoved) ||
-            (piece == 'k' && newC.first == old.first + 2 && !isBlackRookHMoved))
+        if ((piece == 'K' && newC.second == old.second + 2 && !isWhiteRookHMoved) ||
+            (piece == 'k' && newC.second == old.second + 2 && !isBlackRookHMoved))
         {
-            if (board[old.second][old.first + 1] == ' ' && board[old.second][old.first + 2] == ' ')
+            if (board[old.first][old.second + 1] == ' ' && board[old.first][old.second + 2] == ' ')
             {
                 return true;
             }
         }
         // Queenside castling
-        else if ((piece == 'K' && newC.first == old.first - 2 && !isWhiteRookAMoved) ||
-            (piece == 'k' && newC.first == old.first - 2 && !isBlackRookAMoved))
+        else if ((piece == 'K' && newC.second == old.second - 2 && !isWhiteRookAMoved) ||
+            (piece == 'k' && newC.second == old.second - 2 && !isBlackRookAMoved))
         {
-            if (board[old.second][old.first - 1] == ' ' && board[old.second][old.first - 2] == ' ')
+            if (board[old.first][old.second - 1] == ' ' && board[old.first][old.second - 2] == ' ')
             {
                 return true;
             }
@@ -198,7 +198,8 @@ bool ChessUtils::verifyMove(std::pair<int, int> old, std::pair<int, int> newC, c
             // Diagonal capture
             else if (std::abs(old.second - newC.second) == 1
                 && old.first - newC.first == 1
-                && !Utils::isEmptySquare(board[newC.first][newC.second]))
+                && !Utils::isEmptySquare(board[newC.first][newC.second])
+                && old.first > newC.first)
             {
                 return true;
             }
@@ -214,8 +215,9 @@ bool ChessUtils::verifyMove(std::pair<int, int> old, std::pair<int, int> newC, c
                 return true;
             }
             else if (std::abs(old.second - newC.second) == 1
-                && newC.first - old.first == 1
-                && !Utils::isEmptySquare(board[newC.first][newC.second]))
+                && std::abs(newC.first - old.first) == 1
+                && !Utils::isEmptySquare(board[newC.first][newC.second])
+                && newC.first > old.first)
             {
                 return true;
             }
@@ -282,6 +284,19 @@ bool ChessUtils::verifyMove(std::pair<int, int> old, std::pair<int, int> newC, c
         if ((old.first == newC.first || old.second == newC.second) ||
             (std::abs(old.first - newC.first) == std::abs(old.second - newC.second)))
         {
+            int dirY = (newC.first > old.first) ? 1 : -1;
+            int dirX = (newC.second > old.second) ? 1 : -1;
+
+            dirY = (newC.first == old.first) ? 0 : dirY;
+            dirX = (newC.second == old.second) ? 0 : dirX;
+
+            for (int i = old.first + dirY, j = old.second + dirX; i != newC.first || j != newC.second; i += dirY, j += dirX)
+            {
+                if (!Utils::isEmptySquare(board[i][j]))
+                {
+                    return false; // Path blocked
+                }
+            }
             // Combine the logic for rook and bishop movement (similar path-checking)
             return true;
         }
@@ -313,7 +328,7 @@ std::pair<int, int> ChessUtils::findKing(char board[8][8], bool white)
 
     return king;
 }
-
+ //TODO NE DELA PROU
 bool ChessUtils::checkExists(char board[8][8], bool isKingWhite, bool& isWhiteKingMoved, bool& isBlackKingMoved,
                              bool& isWhiteRookAMoved, bool& isWhiteRookHMoved, bool& isBlackRookAMoved,
                              bool& isBlackRookHMoved, bool checkOnWhite, bool checkOnBlack)
@@ -490,20 +505,8 @@ bool ChessUtils::solvesCheck(bool white, char board[8][8], std::pair<int, int> o
                              bool& isBlackRookAMoved, bool& isBlackRookHMoved, bool checkOnWhite, bool checkOnBlack)
 {
     char tempBoard[8][8];
-    for (int i = 0; i < 8; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            if (!Utils::isEmptySquare(board[i][j]))
-            {
-                tempBoard[i][j] = board[i][j];
-            }
-            else
-            {
-                tempBoard[i][j] = ' ';
-            }
-        }
-    }
+    memcpy(tempBoard, board, sizeof(tempBoard));
+
     move(tempBoard, old, newC,
          isWhiteKingMoved, isBlackKingMoved,
          isWhiteRookAMoved, isWhiteRookHMoved,

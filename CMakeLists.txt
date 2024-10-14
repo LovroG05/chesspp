@@ -11,3 +11,4 @@ add_executable(chesspp main.cpp ${SRC_FILES})
 target_include_directories(chesspp PUBLIC include/)
 
 
+add_subdirectory(tests)

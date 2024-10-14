@@ -79,7 +79,7 @@ int main() {
         std::pair<int, int> old;
         std::pair<int, int> newC;
 
-        if (white_turn)
+        /*if (white_turn)
         {
             std::string start_location, destination;
             std::cout << (white_turn ? "White" : "Black") << " player's turn\n";
@@ -99,22 +99,25 @@ int main() {
             newC = m.newC;
 
             //std::cout << "AI move: " << old.first << " " << old.second << " goes to " << newC.first << " " << newC.second << std::endl;
-        }
+        }*/
 
-        /*Move m = Minimax().findBestMove(board, 20, isWhiteKingMoved, isBlackKingMoved,
-                isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved,white_turn);
+        Move m = Minimax().findBestMove(board, 20, isWhiteKingMoved, isBlackKingMoved,
+                isWhiteRookAMoved, isWhiteRookHMoved, isBlackRookAMoved, isBlackRookHMoved,white_turn, checkOnWhite, checkOnBlack);
 
         old = m.oldC;
-        newC = m.newC;*/
+        newC = m.newC;
 
         // Ensure valid turn
         if (std::isupper(board[old.first][old.second]) == white_turn) {
             // Check if move is valid (including castling)
-            if ((white_turn && checkOnWhite) || (!white_turn && checkOnBlack) && !ChessUtils::solvesCheck(white_turn, board, old, newC, isWhiteKingMoved, isBlackKingMoved,
+            // TODO WTF IS GOING ON HERE EVEN DEBUGGAR IS NOT WORK
+            if (((white_turn && checkOnWhite) || (!white_turn && checkOnBlack))
+                && !ChessUtils::solvesCheck(white_turn, board, old, newC, isWhiteKingMoved, isBlackKingMoved,
                                        isWhiteRookAMoved, isWhiteRookHMoved,
                                        isBlackRookAMoved, isBlackRookHMoved, checkOnWhite, checkOnBlack))
             {
                 std::cout << "First solve the check on " << (white_turn ? "white" : "black") << std::endl;
+                std::cout << "attempted move: " << old.first << ", " << old.second << " to " << newC.first << ", " << newC.second << std::endl;
                 continue;
             }
             if (ChessUtils::verifyMove(old, newC, board,
