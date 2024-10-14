@@ -154,5 +154,14 @@ int main() {
         checkOnBlack = false;
         checkOnWhite = false;
     }
+
+    // Convert history to PGN moves
+    std::vector<std::string> pgnMoves = Utils::convertMoveHistoryToPGN(history);
+
+    // Write the PGN moves to a file
+    Utils::writePGNToFile("game.pgn", pgnMoves);
+
+    std::cout << "Game length: " << history.size() << std::endl;
+
     return 0;
 }

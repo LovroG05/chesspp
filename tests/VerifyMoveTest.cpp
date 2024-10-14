@@ -1,4 +1,6 @@
 #define CATCH_CONFIG_MAIN
+#include <fstream>
+
 #include "catch.hpp"
 #include "../include/ChessUtils.h"
 #include "../include/Utils.h"
@@ -391,3 +393,185 @@ TEST_CASE("Solves Check Functionality") {
                                           checkOnWhite, checkOnBlack) == true);
     }
 }
+
+TEST_CASE("Convert moves to PGN", "[convertMoveToPGN]") {
+    SECTION("Regular move without capture") {
+        PGNMove move('P', {6, 4}, {5, 4}, false, false, false);
+        REQUIRE(Utils::convertMoveToPGN(move) == "e3");
+    }
+
+    SECTION("Regular move with capture") {
+        PGNMove move('P', {6, 4}, {5, 5}, true, false, false);
+        REQUIRE(Utils::convertMoveToPGN(move) == "exf3");
+    }
+
+    SECTION("Kingside castling") {
+        PGNMove move('K', {7, 4}, {7, 6}, false, false, false, false, true);
+        REQUIRE(Utils::convertMoveToPGN(move) == "O-O");
+    }
+
+    SECTION("Queenside castling") {
+        PGNMove move('K', {7, 4}, {7, 2}, false, false, false, false, true);
+        REQUIRE(Utils::convertMoveToPGN(move) == "O-O-O");
+    }
+
+    SECTION("Move that puts opponent in check") {
+        PGNMove move('Q', {0, 3}, {4, 3}, false, true, false);
+        REQUIRE(Utils::convertMoveToPGN(move) == "Qd4+");
+    }
+
+    SECTION("Move that results in checkmate") {
+        PGNMove move('Q', {0, 3}, {4, 3}, false, false, true);
+        REQUIRE(Utils::convertMoveToPGN(move) == "Qd4#");
+    }
+}
+
+TEST_CASE("Detect moves from history", "[detectMovesFromHistory]") {
+    std::vector<std::vector<std::vector<char>>> history = {
+        {
+            {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+            {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
+            {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+        },
+        {
+            {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+            {'p', 'p', 'p', 'p', ' ', 'p', 'p', 'p'},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', 'p', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+            {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
+            {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+        }
+    };
+
+    SECTION("Detect simple move") {
+        std::vector<PGNMove> moves = Utils::detectMovesFromHistory(history);
+        REQUIRE(moves.size() == 1);
+        REQUIRE(moves[0].piece == 'P');
+        REQUIRE(moves[0].oldPos.first == 1);
+        REQUIRE(moves[0].oldPos.second == 4);
+        REQUIRE(moves[0].newPos.first == 3);
+        REQUIRE(moves[0].newPos.second == 4);
+        REQUIRE(!moves[0].isCapture);
+    }
+
+    SECTION("Detect capture move") {
+        std::vector<std::vector<std::vector<char>>> captureHistory = {
+            {
+                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {' ', 'p', ' ', ' ', ' ', ' ', ' ', ' '},
+                {' ', ' ', 'P', ' ', ' ', ' ', ' ', ' '},
+                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {'P', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+            },
+            {
+                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {' ', ' ', 'p', ' ', ' ', ' ', ' ', ' '},
+                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {'P', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+            },
+        };
+
+        std::vector<PGNMove> moves = Utils::detectMovesFromHistory(captureHistory);
+        REQUIRE(moves.size() == 1);
+        REQUIRE(moves[0].piece == 'P');
+        REQUIRE(moves[0].oldPos.first == 3);
+        REQUIRE(moves[0].oldPos.second == 1);
+        REQUIRE(moves[0].newPos.first == 4);
+        REQUIRE(moves[0].newPos.second == 2);
+        REQUIRE(moves[0].isCapture); // This should be true if it was a capture
+    }
+}
+
+TEST_CASE("Writing PGN moves to file", "[pgn]") {
+    // Create a vector of strings to simulate a game in PGN format
+    std::vector<std::string> pgnMoves = {
+        "e4",  "e5",         // 1. e4 e5
+        "Nf3", "Nc6",        // 2. Nf3 Nc6
+        "Bb5", "a6",         // 3. Bb5 a6
+        "O-O", "O-O"         // 4. O-O O-O (castling example)
+    };
+
+    // Specify the PGN output file
+    std::string pgnFilename = "tests.pgn";
+
+    // Call the function to write the PGN file
+    Utils::writePGNToFile(pgnFilename, pgnMoves);
+
+    // Open and check the PGN file content
+    std::ifstream pgnFile(pgnFilename);
+    REQUIRE(pgnFile.is_open());
+
+    std::string pgnContent((std::istreambuf_iterator<char>(pgnFile)),
+                            std::istreambuf_iterator<char>());
+
+    // Check that the moves are written in correct PGN format
+    REQUIRE(pgnContent.find("1. e4 e5") != std::string::npos);  // 1st move pair
+    REQUIRE(pgnContent.find("2. Nf3 Nc6") != std::string::npos); // 2nd move pair
+    REQUIRE(pgnContent.find("3. Bb5 a6") != std::string::npos);  // 3rd move pair
+    REQUIRE(pgnContent.find("4. O-O O-O") != std::string::npos); // Castling
+
+    // Close the file
+    pgnFile.close();
+
+    // Clean up the test file (optional)
+    std::remove(pgnFilename.c_str());
+}
+
+/*TEST_CASE("Write PGN to file", "[writePGNToFile]") {
+    // Create a mock PGN move list for testing
+    std::vector<std::string> pgnMoves = {"e4", "e5", "Nf3", "Nc6", "Bb5", "a6", "Ba4", "d6", "c3"};
+
+    // Write to a file
+    Utils::writePGNToFile("test.pgn", pgnMoves);
+
+    // Check if the file was created and has the expected content
+    std::ifstream inFile("test.pgn");
+    REQUIRE(inFile.is_open());
+
+    std::string line;
+    int lineCount = 0;
+
+    while (std::getline(inFile, line)) {
+        lineCount++;
+        // Check the expected output lines
+        if (lineCount == 1) {
+            REQUIRE(line == "[Event \"Chess Game\"]");
+        }
+        else if (lineCount == 2) {
+            REQUIRE(line == "[Site \"Online\"]");
+        }
+        else if (lineCount == 3) {
+            REQUIRE(line == "[Date \"2024.10.14\"]");
+        }
+        else if (lineCount == 4) {
+            REQUIRE(line == "[Round \"1\"]");
+        }
+        else if (lineCount == 5) {
+            REQUIRE(line == "[White \"Player1\"]");
+        }
+        else if (lineCount == 6) {
+            REQUIRE(line == "[Black \"Player2\"]");
+        }
+        else if (lineCount == 7) {
+            REQUIRE(line == "[Result \"*\"]");
+        }
+        else if (lineCount > 8) {
+            REQUIRE(line == pgnMoves[lineCount - 8]); // Ensure PGN moves match
+        }
+    }
+    inFile.close();
+}*/

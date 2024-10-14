@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <vector>
+#include <PGNMove.h>
 
 class Utils {
   public:
@@ -14,6 +15,10 @@ class Utils {
     static bool isValidSquare(int row, int col);
     static bool isEnemyPiece(char piece, bool isWhite);
     static bool isEmptySquare(char piece);
+    static std::string convertMoveToPGN(const PGNMove& move);
+    static std::vector<PGNMove> detectMovesFromHistory(const std::vector<std::vector<std::vector<char>>>& history);
+    static std::vector<std::string> convertMoveHistoryToPGN(const std::vector<std::vector<std::vector<char>>>& history);
+    static void writePGNToFile(const std::string& filename, const std::vector<std::string>& pgnMoves);
 };
 
 #endif //UTILS_H
